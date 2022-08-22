@@ -1,14 +1,19 @@
 import PropTypes from "prop-types";
 import { P, Li, DelButton } from "./ContactListItem.styled";
-import { deleteContact } from "redux/contactsSlice";
-import { useDispatch } from "react-redux";
+import { useDeleteContactMutation } from "redux/contactsAPI";
+import { toast } from 'react-toastify';
 
 export const ContactListItem = ({id, name, number}) => {
-    const dispatch = useDispatch();
+    const [deleteContact, {isLoading, isSuccess, data}] = useDeleteContactMutation();
+    
+    if(isSuccess) {
+        toast(`${data.name} delete from contacts successfully`)
+    };
+    
     return (
     <Li>
         <P>{name}: {number}</P>
-        <DelButton type="button" onClick={() => dispatch(deleteContact(id))}>Delete</DelButton> 
+        <DelButton type="button" onClick={() => deleteContact(id)} disabled={isLoading}>Delete</DelButton> 
     </Li>
     )
 

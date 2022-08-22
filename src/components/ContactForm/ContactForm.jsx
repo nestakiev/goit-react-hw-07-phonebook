@@ -1,9 +1,10 @@
 import { Formik, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { FormWrapper, AddButton, InputForm } from "./ContactForm.styled";
-import { useDispatch, useSelector } from "react-redux";
-import { addContact, getContacts } from "redux/contactsSlice";
 import shortid from "shortid";
+import { useAddContactMutation, useGetContactsQuery } from "redux/contactsAPI";
+import { toast } from 'react-toastify';
+
 
 const schema = Yup.object().shape({
     name: Yup.string().matches(/^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$/, `Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan`).required(),
@@ -11,17 +12,17 @@ const schema = Yup.object().shape({
 });
 
 export const ContactForm = () => {
-    const dispatch = useDispatch();
-    const contacts = useSelector(getContacts);
+    const [addContact, {isLoading}] = useAddContactMutation();
+    const {data: contacts} = useGetContactsQuery();
     const initialValues = {
         name: '',
         number: '',
     };
     
-    const handleSubmit = (data, {resetForm}) => {
+    const handleSubmit = async (data, {resetForm}) => {
         const isDuplicate = contacts.map(a => a.name).includes(data.name);
         if (isDuplicate) {
-        alert(`${data.name} is already in your contacts`)
+        toast(`${data.name} is already in your contacts`)
         return
         };
         
@@ -30,14 +31,18 @@ export const ContactForm = () => {
         id: newContactId,
         ...data,
         };
-        dispatch(addContact(newContact));
+        const response = await addContact(newContact);
+        if(response.data?.name === data.name) {
+            toast(`${data.name} added to your contacts successfully`)
+        };
         resetForm();
     };
 
     return (
         <Formik initialValues={initialValues} 
         validationSchema={schema} 
-        onSubmit={handleSubmit}>
+        onSubmit={handleSubmit}> 
+        
             <FormWrapper>
                 <label htmlFor="name"> Name</label>
                     <InputForm type="text" name="name"/>
@@ -45,7 +50,7 @@ export const ContactForm = () => {
                 <label htmlFor="number"> Number</label>
                     <InputForm type='tel' name="number"/>
                     <ErrorMessage name='number' component='div' />
-                <AddButton type="submit">Add contact</AddButton>
+                <AddButton type="submit" disabled={isLoading}>Add contact</AddButton>
             </FormWrapper>
         </Formik>
     )
