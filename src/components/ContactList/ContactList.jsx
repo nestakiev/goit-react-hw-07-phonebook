@@ -1,10 +1,11 @@
 import { ContactListItem } from "components/ContactListItem/ContactListItem";
 import { useGetContactsQuery } from "redux/contactsAPI";
-import PropTypes from 'prop-types';
+import { useSelector } from "react-redux";
+import { getFilter } from "redux/filterSlice";
 
-
-export const ContactList = ({filter}) => {
+export const ContactList = () => {
     const {data, isFetching, error} = useGetContactsQuery();
+    const filter = useSelector(getFilter);
    
     const getFiltredContacts = () => {
         const normalizedFilter = filter.toLowerCase();
@@ -33,7 +34,4 @@ export const ContactList = ({filter}) => {
 
 };
 
-ContactList.propTypes = {
-        filter: PropTypes.string.isRequired,
-};
 
